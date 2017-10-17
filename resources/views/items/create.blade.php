@@ -14,5 +14,5 @@
         </div>
     </div>
     
-    @include('items.item', ['items' => $items])
+    @include('items.items', ['items' => $items])
 @endsection

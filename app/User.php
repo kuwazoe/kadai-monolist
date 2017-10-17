@@ -47,6 +47,11 @@ class User extends Model implements AuthenticatableContract,
         return $this->items()->where('type', 'want');
     }
     
+    public function have_items()
+    {
+        return $this->items()->where('type', 'have');
+    }
+    
     public function want($itemId)
     {
         $exist = $this->is_wanting($itemId);
@@ -59,12 +64,35 @@ class User extends Model implements AuthenticatableContract,
         }
     }
     
+    public function have($itemId)
+    {
+        $exist = $this->is_having($itemId);
+        
+        if($exist) {
+            return false;
+        } else {
+            $this->items()->attach($itemId, ['type' => 'have']);
+            return true;
+        }
+    }
+
     public function dont_want($itemId)
     {
         $exist = $this->is_wanting($itemId);
         
         if ($exist) {
             \DB::delete("DELETE FROM item_user WHERE user_id = ? AND item_id = ? AND type = 'want'", [\Auth::user()->id, $itemId]);
+        } else {
+            return false;
+        }
+    }
+    
+    public function dont_have($itemId)
+    {
+        $exist = $this->is_having($itemId);
+        
+        if ($exist) {
+            \DB::delete("DELETE FROM item_user WHERE user_id = ? AND item_id = ? AND type = 'have'", [\Auth::user()->id, $itemId]);
         } else {
             return false;
         }
@@ -77,6 +105,17 @@ class User extends Model implements AuthenticatableContract,
             return $item_id_exists;
         } else {
             $item_code_exists = $this->want_items()->where('code', $itemIdOrCode)->exists();
+            return $item_code_exists;
+        }
+    }
+    
+        public function is_having($itemIdOrCode)
+    {
+        if (is_numeric($itemIdOrCode)) {
+            $item_id_exists = $this->have_items()->where('item_id', $itemIdOrCode)->exists();
+            return $item_id_exists;
+        } else {
+            $item_code_exists = $this->have_items()->where('code', $itemIdOrCode)->exists();
             return $item_code_exists;
         }
     }
